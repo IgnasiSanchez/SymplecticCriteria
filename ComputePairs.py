@@ -1,4 +1,4 @@
-%autoindent off
+#%autoindent off
 
 from sage.all import ZZ, QQ, EllipticCurve, prime_range, prod, Set, cremona_optimal_curves, srange, next_prime, CremonaDatabase, polygen, legendre_symbol, PolynomialRing, NumberField, SteinWatkinsAllData
 from sage.schemes.elliptic_curves.isogeny_small_degree import Fricke_polynomial
@@ -9,6 +9,9 @@ import numpy as np
 CDB = CremonaDatabase()
 x = polygen(QQ)
 
+###
+### The following functions are taken from John Cremona's https://github.com/JohnCremona/congruences
+### 
 
 def SW_label(E):
     return ".".join([str(E.conductor()), str(E.ainvs())])
@@ -20,26 +23,6 @@ def Elabel(E):
     except:
         return SW_label(E)
 
-
-def check_if_star_is_zero(E, p, prLim = 5):
-    """
-    Check if the star of the rep of E is zero. 
-    """
-    if type(E) == type("str"):
-        lab = E
-        E = EllipticCurve(lab)
-    else:
-        lab = E.cremona_label()
-    badp = set([x[0] for x in list(E.conductor().factor())] + [p])
-    pr = primes_first_n(prLim)
-    _ = [pr.remove(p) for p in badp if p in pr]
-    _ = magma.eval('E := EllipticCurve("{}");'.format(lab))
-    _ = magma.eval('pr := {};'.format(pr))
-    ans = magma.eval('{} in [Order(GL(2,{})!IntegralFrobenius(ChangeRing(E, GF(p)))) : p in pr];'.format(p,p))
-    if ans == 'true':
-        return False
-    else:
-        return True
 
 # Given elliptic curves E1 and E2 and a prime p, use Kraus's Prop. 4
 # to determine whether or not E1[p] and E2[p] have isomorphic
@@ -190,12 +173,10 @@ def make_hash(p, N1, N2, np=20):
     return hashtab
 
 
-def isog_pol(E, p=7):
-    return Fricke_polynomial(p)(x)-x*E.j_invariant()
-
-
 def test_irred(s, p=7):
-    return len(isog_pol(EllipticCurve(s[0]),p).roots())==0
+    E = EllipticCurve(s[0])
+    isog_pol = Fricke_polynomial(p)(x)-x*E.j_invariant()
+    return len(isog_pol.roots())==0
 
 
 def isogeny_kernel_field(phi, optimize=False):
@@ -210,7 +191,47 @@ def isogeny_kernel_field(phi, optimize=False):
     return Fxy
 
 
+###
+### From here onwards it's our own code
+###
+
+def check_if_star_is_zero(E, p, prLim = 5):
+    """
+    Iteratively check if the star of the mod p representation of E is zero by checking the order of the mod p representation at different primes.
+    This procedure is not 100% and it depends on the prLim set (prLim is the first prLim primes).
+    """
+    
+    if type(E) == type("str"):
+        lab = E
+        E = EllipticCurve(lab)
+    else:
+        lab = E.cremona_label()
+    badp = set([x[0] for x in list(E.conductor().factor())] + [p])
+    pr = primes_first_n(prLim)
+    _ = [pr.remove(p) for p in badp if p in pr]
+    _ = magma.eval('E := EllipticCurve("{}");'.format(lab))
+    _ = magma.eval('pr := {};'.format(pr))
+    ans = magma.eval('{} in [Order(GL(2,{})!IntegralFrobenius(ChangeRing(E, GF(p)))) : p in pr];'.format(p,p))
+    if ans == 'true':
+        return False
+    else:
+        return True
+
+
+def is_star_really_zero(lab, p):
+    """
+    This computes the field cut out by the p-torsion and checks if the star of the representation is zero explicitly.
+    Of course this function is way slower than check_if_star_is_zero, but it is 100%.
+    """
+    E = EllipticCurve(lab)
+    torFld = E.torsion_polynomial(p).splitting_field(names='a')
+    return (mod(torFld.degree(), p) != 0)
+
+
 def EC_star_field(E, p, optimize=True):
+    """
+    Compute the field cut out by the star in the representation (1, *), (0, 1)
+    """
     # assume that a degree p isogeny exists
     if type(E) == type("str"):
         E = EllipticCurve(E)
@@ -231,8 +252,7 @@ def EC_star_field(E, p, optimize=True):
 
 def saturate_list(ss):
     """
-    Saturate the list of curves by adding all curves that are isogenous
-    to the curves in the input list.
+    Saturate the list of curves by adding all curves in the isogeny class of each curve in the list ss.
     """
     saturated_list = []
     for isog in tqdm(ss):
@@ -245,6 +265,7 @@ def saturate_list(ss):
         saturated_list.append(list(saturated))
     return saturated_list
 
+
 def remove_star_zero_cases_singleList(ss, p, prLim = 50):
     alive = []
     for lab in ss:
@@ -255,7 +276,9 @@ def remove_star_zero_cases_singleList(ss, p, prLim = 50):
 
 def remove_star_zero_cases(ss, p, prLim = 50):
     """
-    Remove cases where the top right corner entry of the mod p representation is zero.
+    Remove cases where the top right corner entry of the mod p representation is zero. 
+    This uses the function check_if_star_is_zero iteratively increasing the prime limit
+    to eliminate false negatives.
     """
     filtered = []
     possible_star_zero_cases = []
@@ -272,13 +295,12 @@ def remove_star_zero_cases(ss, p, prLim = 50):
         possible_star_zero_cases.append(removed)
     return filtered, possible_star_zero_cases    
 
-def is_star_really_zero(lab, p):
-    E = EllipticCurve(lab)
-    torFld = E.torsion_polynomial(p).splitting_field(names='a')
-    return (mod(torFld.degree(), p) != 0)
-
 
 def field_isomorphism(K1, K2):
+    """
+    I was getting errors using Sage's default .is_isomorphic (which uses pari's nfisom underneath)
+    so we use Magma's IsIsomorphic function instead.
+    """
     f1 = K1.defining_polynomial()
     f2 = K2.defining_polynomial()
     if f1.variable_name() != f2.variable_name():
@@ -288,49 +310,53 @@ def field_isomorphism(K1, K2):
     _ = magma.eval('K2 := NumberField({});'.format(K2.defining_polynomial()))
     return magma.eval('IsIsomorphic(K1, K2);')[0:4] == 'true'
 
-###########
-## Mod 5 ##
-###########
-
+#######################################################
+######################## Mod 5 ########################
+#######################################################
+p = 5
+# Compute the list of all possible curves whose p-torsion might be isomorphic by using the hash1 function
+# this us a dictionary with key the hash (which is just the a_ell's of the curves as a p-adic integer) and
+# the values are all curves with the same hash. Values of the dictionary of length < 1 are also removed. 
 try:
-    hashtab5_50 = load('hashtab5_50')
+    mod5_hashtable = load('IntermediateFiles/mod5_hashtable')
 except IOError:
-    hashtab5_50 = make_hash(5,11,500000,50)
-    hashtab5_50 = dict([(k,v) for k,v in hashtab5_50.items() if len(v)>1])
-    save(hashtab5_50, 'hashtab5_50')
+    mod5_hashtable = make_hash(p,11,500000,50)
+    mod5_hashtable = dict([(k,v) for k,v in mod5_hashtable.items() if len(v)>1])
+    save(mod5_hashtable, 'IntermediateFiles/mod5_hashtable')
 
-isom_sets = hashtab5_50.values()
+isom_sets = mod5_hashtable.values()
 print(len(isom_sets))
 
-# # Separate in reducible and irreducible mod p images
+# Separate in reducible and irreducible mod p images since the treatment is different in each case.
 
 isom_sets_red = []
 isom_sets_irred = []
 for s in isom_sets:
-    isom_sets_irred.append(s) if test_irred(s,5) else isom_sets_red.append(s)
+    isom_sets_irred.append(s) if test_irred(s,p) else isom_sets_red.append(s)
 print("{} irreducible sets, {} reducible sets".format(len(isom_sets_irred),len(isom_sets_red)))
 
-save(isom_sets_red, 'mod5_isom_sets_red')
-save(isom_sets_irred, 'mod5_isom_sets_irred')
+save(isom_sets_red, 'IntermediateFiles/mod5_isom_sets_red')
+save(isom_sets_irred, 'IntermediateFiles/mod5_isom_sets_irred')
 
-# ### Irreducible Computations:
+# Irreducible case:
 
+# we use Kraus - Oesterlé bound to find which isomorphisms of the p-torsions are not really isomorphisms.
+# (this needs to be more accurate, since we are using a static bound which does not work on all examples).
 bad_pairs = []
 for s in tqdm(isom_sets_irred):
     E1 = EllipticCurve(s[0])
     for r in s[1:]:
         E2 = EllipticCurve(r)
-        res, info = test_cong(5,E1,E2, mumax=10^7)
+        res, info = test_cong(p,E1,E2, mumax=10^7)
         if not res:
-            report(res,info,5,s[0],r)
+            report(res,info,p,s[0],r)
             bad_pairs.append([s[0],r])
 
 print("Found {} bad pairs".format(len(bad_pairs)))
 
 assert len(bad_pairs)==0, "There are bad pairs in mod 5 isomorphism sets"
 
-
-out = open("mod5_IrredPairs.m",'w')
+out = open("PairsLists/pairs_mod5_irred.m",'w')
 out.write('pairs := [\\\n')
 for i,s in enumerate(isom_sets_irred):
     for j,sj in enumerate(s):
@@ -346,11 +372,21 @@ out.close()
 print("Saved all irreducible pairs to mod5_IrredPairs.m")
 
 
-### Reducible computations
+# Reducible case:
 
+# The main issue with the reducible case is that the mod p representation has the form 
+# (1 *)
+# (0 1)
+# and sometimes * is zero. We need to eliminate these cases.
 
+# first add all curves in the isogeny class for each curve in isom_sets_red
 isom_sets_red_sat = saturate_list(isom_sets_red)
+save(isom_sets_red_sat, 'IntermediateFiles/mod5_isom_sets_red_sat')
+
+# load Centeleghe's code to compute the image of Frob_ell in Magma
 magma.eval('load "IntFrobFunctions.m"')
+
+# remove star zero cases
 isom_sets_red_sat_nonzero, possible_zeros = remove_star_zero_cases(isom_sets_red_sat, 5)
 for i in range(len(isom_sets_red_sat)):
     if possible_zeros[i]:
@@ -362,14 +398,21 @@ for i in range(len(isom_sets_red_sat)):
                 print("Star of {} is not really zero".format(lab))
                 isom_sets_red_sat_nonzero[i].append(lab)
 
-save(isom_sets_red_sat_nonzero, 'isom_sets_red_sat_nonzero')
-save(possible_zeros, 'possible_zeros')
+save(isom_sets_red_sat_nonzero, 'IntermediateFiles/mod5_isom_sets_red_sat_nonzero')
+save(possible_zeros, 'IntermediateFiles/mod5_possible_zeros')
 
+
+# Now from Cremona - Freitas https://arxiv.org/pdf/1910.12290 theorem 3.6 
+# It states that the semisimplification of the mod p representation is a sum of characters
+# χ + χ' (chip). We need to recognize whether the mod p representation is
+# (χ  *)        (χ' *)
+# (0 χ')   or   (0  χ)
+# Of course the examples are one or another and their p-torsions will not be isomorphic between the two sets.
 kernel_flds_chi = []
 kernel_flds_chip = []
 for ss in tqdm(isom_sets_red_sat_nonzero):
     base_curves = [EllipticCurve(lab) for lab in ss]
-    isogenies = [E.isogenies_prime_degree(5)[0] for E in base_curves]
+    isogenies = [E.isogenies_prime_degree(p)[0] for E in base_curves]
     isog_curves = [phi.codomain() for phi in isogenies]
     fld_chi = isogeny_kernel_field(isogenies[0], optimize=True)
     kernel_fld_chi = []
@@ -382,11 +425,12 @@ for ss in tqdm(isom_sets_red_sat_nonzero):
     kernel_flds_chi.append(kernel_fld_chi)
     kernel_flds_chip.append(kernel_fld_chip)
 
-save(kernel_flds_chi, 'kernel_flds_chi')
-save(kernel_flds_chip, 'kernel_flds_chip')
+save(kernel_flds_chi, 'IntermediateFiles/mod5_kernel_flds_chi')
+save(kernel_flds_chip, 'IntermediateFiles/mod5_kernel_flds_chip')
 
-
-def pairs_mod_p_with_same_chi_field(list, p):
+# Finally, following the same theorem of Cremona-Freitas, we compute the fields F_1 and F_2 for each possible pair of
+# elliptic curves E_1, E_2 respectively and check if they are isomorphic.
+def pairs_mod_p_with_same_star_field(list, p):
     pairs = []
     starfield_dict = {EC_star_field(list[0], p, optimize=False) : [list[0]]}
     for i in range(1, len(list)):
@@ -415,11 +459,11 @@ pairs = []
 for iss in tqdm(range(len(isom_sets_red_sat_nonzero))):
     ss = isom_sets_red_sat_nonzero[iss]
     curves_with_chi_fld = [ss[x] for x in kernel_flds_chi[iss]]
-    pairs += pairs_mod_p_with_same_chi_field(curves_with_chi_fld, 5)
+    pairs += pairs_mod_p_with_same_star_field(curves_with_chi_fld, p)
     curves_with_chip_fld = [ss[x] for x in kernel_flds_chip[iss]]
-    pairs += pairs_mod_p_with_same_chi_field(curves_with_chip_fld, 5)
+    pairs += pairs_mod_p_with_same_star_field(curves_with_chip_fld, p)
 
-out = open("mod5_RedPairs.m",'w')
+out = open("PairsLists/pairs_mod5_red.m",'w')
 out.write('pairs := [\\\n')
 for i,s in enumerate(pairs):
     out.write('["{}", "{}"]'.format(s[0],s[1]))
@@ -429,14 +473,7 @@ for i,s in enumerate(pairs):
 out.write('];\n')
 out.close()
 
-print("Saved all reducible pairs to mod5_RedPairs.m")
-
-
-# isom_sets_red = load("mod5_isom_sets_red")
-# isom_sets_red_sat = load("isom_sets_red_sat")
-# isom_sets_red_sat_nonzero = load("isom_sets_red_sat_nonzero")
-# kernel_flds_chi = load('kernel_flds_chi')
-# kernel_flds_chip = load('kernel_flds_chip')
+print("Saved all reducible pairs to pairs_mod5_red.m")
 
     
 
