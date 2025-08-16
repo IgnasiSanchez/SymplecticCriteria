@@ -1,0 +1,135 @@
+function test_pairs(pairs);
+
+missed:=[];
+symplectics:=[];
+antisymplectics:=[];
+
+for i in [1..#pairs] do 
+tps:=[];
+pr:=pairs[i];
+print "i = ", i, ", pair = ", pr;
+E1:=MinimalModel(EllipticCurve(pr[1]));
+E2:=MinimalModel(EllipticCurve(pr[2]));
+
+s1:=multiplicativeTest(E1,E2,p);
+if s1 ne 0 then 
+	Append(~tps,s1);
+	print "success with multiplicative test";
+end if;
+
+s2:=H8test(E1,E2,p);
+if s2 ne 0 then 
+	Append(~tps,s2);
+	print "success with H8 test";
+end if;
+
+s3:=SL2test(E1,E2,p);
+if s3 ne 0 then 
+	Append(~tps,s3);
+	print "success with SL2 test";
+end if;
+
+s4:=Dic12test(E1,E2,p);
+if s4 ne 0 then 
+	Append(~tps,s4);
+	print "success with Dic12 test";
+end if;
+
+
+s5:=C3test(E1,E2,p);
+if s5 ne 0 then 
+	Append(~tps,s5);
+	print "success with C3 test";
+end if;
+
+s6:=C4test(E1,E2,p);
+if s6 ne 0 then 
+	Append(~tps,s6);
+	print "success with C4 test";
+end if;
+
+s7:=C3testWild(E1,E2,p);	
+if s7 ne 0 then 
+	Append(~tps,s7);
+	print "success with wild C3 test";
+end if;
+
+s8:=C4testWild(E1,E2,p);	
+if s8 ne 0 then 
+	Append(~tps,s8);
+	print "success with wild C4 test";
+end if;
+
+
+if #tps ne 0 then
+        // check that all test which applied agree:
+        assert #Set(tps) eq 1;
+        sgn := Rep(Set(tps));
+	if sgn eq 1 then Append(~symplectics,i);
+        elif sgn eq -1 then Append(~antisymplectics,i);
+        end if;
+	print i, sgn;
+	print "+++++++++++++++++++++";
+else
+	print i, "no test applied";
+	Append(~missed,i);
+	print "+++++++++++++++++++++";
+end if;
+end for;
+
+
+// applies test of good reduction only to those who missed all the tests
+
+missed2:=[];
+Bound:=1000;
+
+print "After testing ", #pairs, " pairs, ";
+print #symplectics, " pairs were proved to be symplectic, ";
+print #antisymplectics, " pairs were proved to be antisymplectic, and";
+print #missed, " failed (no test applied)";
+print "Now applying the test of good reduction to these";
+
+for i in [1..#missed] do 
+tps:=[];
+pr:=pairs[i];
+print "i = ", i, ", pair = ", pr;
+E1:=MinimalModel(EllipticCurve(pr[1]));
+E2:=MinimalModel(EllipticCurve(pr[2]));
+
+s9:=QuickGoodRedTest(E1,E2,Bound,p);
+if s9 ne 0 then 
+	Append(~tps,s9);
+	print "success with quick good reduction test";
+end if;
+
+s10:=FullGoodRedTest(E1,E2,Bound,p);
+if s10 ne 0 then 
+	Append(~tps,s10);
+	print "success with full good reduction test";
+end if;
+
+if #tps ne 0 then
+	assert #Set(tps) eq 1; 
+        sgn := Rep(Set(tps));
+	if sgn eq 1 then Append(~symplectics,i);
+        elif sgn eq -1 then Append(~antisymplectics,i);
+        end if;
+	print i, Rep(tps);
+	print "+++++++++++++++++++++";
+else
+	print i, "no test applied";
+	Append(~missed2,i);
+	print "+++++++++++++++++++++";
+end if;
+
+end for;
+
+print "After additional tests of ", #missed, " pairs";
+print #symplectics, " pairs were proved to be symplectic, ";
+print #antisymplectics, " pairs were proved to be antisymplectic, and";
+print #missed2, " still failed (no test applied)";
+
+// return statement to avoid error message, useless otherwise
+return 0;
+
+end function;
