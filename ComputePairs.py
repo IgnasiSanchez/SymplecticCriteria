@@ -177,9 +177,11 @@ def make_hash(p, N1, N2, np=20):
 
 def test_irred(s, p):
     E = EllipticCurve(s[0])
-    isog_pol = Fricke_polynomial(p)(x)-x*E.j_invariant()
-    return len(isog_pol.roots())==0
-
+    if p in [2,3,5,7,13]:
+        isog_pol = Fricke_polynomial(p)(x)-x*E.j_invariant()
+        return len(isog_pol.roots())==0
+    else:
+        return not E.isogenies_prime_degree(p)
 
 def isogeny_kernel_field(phi, optimize=False):
     pol = phi.kernel_polynomial()
