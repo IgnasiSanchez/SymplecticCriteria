@@ -494,27 +494,27 @@ pari.allocatemem(GbToBytes(10))
 
 
 
-# Mod 5
-isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(5)
-irreducible_pairs(isom_sets_irred, 5)
-reducible_pairs(isom_sets_red, 5)
+# # Mod 5
+# isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(5)
+# irreducible_pairs(isom_sets_irred, 5)
+# reducible_pairs(isom_sets_red, 5)
 
-# Mod 7
-isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(7)
-irreducible_pairs(isom_sets_irred, 7)
-reducible_pairs(isom_sets_red, 7)
+# # Mod 7
+# isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(7)
+# irreducible_pairs(isom_sets_irred, 7)
+# reducible_pairs(isom_sets_red, 7)
 
-# Mod 11
-isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(11)
-irreducible_pairs(isom_sets_irred, 11)
-reducible_pairs(isom_sets_red, 11)
+# # Mod 11
+# isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(11)
+# irreducible_pairs(isom_sets_irred, 11)
+# reducible_pairs(isom_sets_red, 11)
 
-# Mod 13
-isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(13)
-irreducible_pairs(isom_sets_irred, 13)
-reducible_pairs(isom_sets_red, 13)
+# # Mod 13
+# isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(13)
+# irreducible_pairs(isom_sets_irred, 13)
+# reducible_pairs(isom_sets_red, 13)
 
-# Mod 17
-isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(17)
-irreducible_pairs(isom_sets_irred, 17)
-reducible_pairs(isom_sets_red, 17)
+# # Mod 17
+# isom_sets_irred, isom_sets_red = compute_and_separate_lists_by_redtype(17)
+# irreducible_pairs(isom_sets_irred, 17)
+# reducible_pairs(isom_sets_red, 17)
