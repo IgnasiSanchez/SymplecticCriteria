@@ -1,4 +1,4 @@
-function test_pairs(pairs);
+function test_pairs(pairs, p);
 
     missed:=[];
     symplectics:=[];
@@ -153,7 +153,7 @@ end function;
 
 
 load "PairsLists/pairs_mod5_irred.m";
-symp, antisymp, missed := test_pairs(pairs);
+symp, antisymp, missed := test_pairs(pairs, 5);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod5_irred_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod5_irred_antisymp.m");
 if not IsEmpty(pairs[missed]) then
@@ -161,7 +161,7 @@ if not IsEmpty(pairs[missed]) then
 end if;
 
 load "PairsLists/pairs_mod5_red.m";
-symp, antisymp, missed2 := test_pairs(pairs);
+symp, antisymp, missed2 := test_pairs(pairs, 5);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod5_red_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod5_red_antisymp.m");
 if not IsEmpty(pairs[missed2]) then
@@ -169,7 +169,7 @@ if not IsEmpty(pairs[missed2]) then
 end if;
 
 load "PairsLists/pairs_mod11_irred.m";
-symp, antisymp, missed3 := test_pairs(pairs);
+symp, antisymp, missed3 := test_pairs(pairs, 11);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod11_irred_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod11_irred_antisymp.m");
 if not IsEmpty(pairs[missed3]) then
@@ -177,7 +177,7 @@ if not IsEmpty(pairs[missed3]) then
 end if;
 
 load "PairsLists/pairs_mod13_irred.m";
-symp, antisymp, missed4 := test_pairs(pairs);
+symp, antisymp, missed4 := test_pairs(pairs, 13);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod13_irred_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod13_irred_antisymp.m");
 if not IsEmpty(pairs[missed4]) then
@@ -185,7 +185,7 @@ if not IsEmpty(pairs[missed4]) then
 end if;
 
 load "PairsLists/pairs_mod17_irred.m";
-symp, antisymp, missed5 := test_pairs(pairs);
+symp, antisymp, missed5 := test_pairs(pairs, 17);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod17_irred_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod17_irred_antisymp.m");
 if not IsEmpty(pairs[missed5]) then
