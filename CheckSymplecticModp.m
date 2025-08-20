@@ -1,4 +1,4 @@
-load "InertiaTests.m"
+load "InertiaTests.m";
 
 function test_pairs(pairs, p);
 
