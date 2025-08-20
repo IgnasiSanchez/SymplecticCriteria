@@ -154,40 +154,40 @@ end function;
 
 load "PairsLists/pairs_mod5_irred.m";
 symp, antisymp, missed := test_pairs(pairs);
-WriteListOfPairsToFile(pairs[symp], "pairs_mod5_irred_symp.m");
-WriteListOfPairsToFile(pairs[antisymp], "pairs_mod5_irred_antisymp.m");
+WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod5_irred_symp.m");
+WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod5_irred_antisymp.m");
 if not IsEmpty(pairs[missed]) then
-    WriteListOfPairsToFile(pairs[missed], "pairs_mod5_irred_MISSED.m");
+    WriteListOfPairsToFile(pairs[missed], "PairsLists/pairs_mod5_irred_MISSED.m");
 end if;
 
 load "PairsLists/pairs_mod5_red.m";
 symp, antisymp, missed2 := test_pairs(pairs);
-WriteListOfPairsToFile(pairs[symp], "pairs_mod5_red_symp.m");
-WriteListOfPairsToFile(pairs[antisymp], "pairs_mod5_red_antisymp.m");
+WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod5_red_symp.m");
+WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod5_red_antisymp.m");
 if not IsEmpty(pairs[missed2]) then
-    WriteListOfPairsToFile(pairs[missed2], "pairs_mod5_red_MISSED.m");
+    WriteListOfPairsToFile(pairs[missed2], "PairsLists/pairs_mod5_red_MISSED.m");
 end if;
 
 load "PairsLists/pairs_mod11_irred.m";
 symp, antisymp, missed3 := test_pairs(pairs);
-WriteListOfPairsToFile(pairs[symp], "pairs_mod11_irred_symp.m");
-WriteListOfPairsToFile(pairs[antisymp], "pairs_mod11_irred_antisymp.m");
+WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod11_irred_symp.m");
+WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod11_irred_antisymp.m");
 if not IsEmpty(pairs[missed3]) then
-    WriteListOfPairsToFile(pairs[missed3], "pairs_mod11_irred_MISSED.m");
+    WriteListOfPairsToFile(pairs[missed3], "PairsLists/pairs_mod11_irred_MISSED.m");
 end if;
 
 load "PairsLists/pairs_mod13_irred.m";
 symp, antisymp, missed4 := test_pairs(pairs);
-WriteListOfPairsToFile(pairs[symp], "pairs_mod13_irred_symp.m");
-WriteListOfPairsToFile(pairs[antisymp], "pairs_mod13_irred_antisymp.m");
+WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod13_irred_symp.m");
+WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod13_irred_antisymp.m");
 if not IsEmpty(pairs[missed4]) then
-    WriteListOfPairsToFile(pairs[missed4], "pairs_mod13_irred_MISSED.m");
+    WriteListOfPairsToFile(pairs[missed4], "PairsLists/pairs_mod13_irred_MISSED.m");
 end if;
 
 load "PairsLists/pairs_mod17_irred.m";
 symp, antisymp, missed5 := test_pairs(pairs);
-WriteListOfPairsToFile(pairs[symp], "pairs_mod17_irred_symp.m");
-WriteListOfPairsToFile(pairs[antisymp], "pairs_mod17_irred_antisymp.m");
+WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod17_irred_symp.m");
+WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod17_irred_antisymp.m");
 if not IsEmpty(pairs[missed5]) then
-    WriteListOfPairsToFile(pairs[missed5], "pairs_mod17_irred_MISSED.m");
+    WriteListOfPairsToFile(pairs[missed5], "PairsLists/pairs_mod17_irred_MISSED.m");
 end if;
