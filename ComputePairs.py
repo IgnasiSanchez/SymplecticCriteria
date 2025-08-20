@@ -394,7 +394,7 @@ def irreducible_pairs(isom_sets_irred, p):
     save(isom_sets_irred_sat, f'IntermediateFiles/mod{p}_isom_sets_irred_sat')
     out = open(f"PairsLists/pairs_mod{p}_irred.m",'w')
     out.write('pairs := [\\\n');
-    for i,s in tqdm(enumerate(isom_sets_irred_sat)):
+    for i,s in enumerate(isom_sets_irred_sat):
         for j1 in range(len(s)):
             for j2 in range(j1+1, len(s)):
                 E1 = EllipticCurve(s[j1])
