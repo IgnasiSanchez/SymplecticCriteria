@@ -11,7 +11,7 @@ function findHSMCase(E, p, ell, zeta)
     j := jInvariant(E);
     j_tilde_pow := GF(ell)!jTildePowModEll(j, p, ell);
 
-    return Log(zeta, j_tilde_pow);
+    return -Log(zeta, j_tilde_pow);
 end function;
 
 function pTorsionBasis(E, p, ell)
