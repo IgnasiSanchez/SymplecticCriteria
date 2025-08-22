@@ -5,6 +5,7 @@ from sage.schemes.elliptic_curves.isogeny_small_degree import Fricke_polynomial
 
 from tqdm import tqdm
 import numpy as np
+import ast
 
 # Big remark for reproducibility: The default Cremona Database in Sagemath is the one with the curves with conductor up to 10000.
 # One needs to install the one with conductor up to half a million (following the instructions in Cremona's repository).
@@ -49,7 +50,16 @@ def test_cong(p, E1, E2, mumax=5000000, semisimp=True, verbose=False, twist=True
         E2orig = E2
         N1orig = N1
         N2orig = N2
-        E1, d = E1.minimal_quadratic_twist()
+        try:
+            E1, d = E1.minimal_quadratic_twist()
+        except:
+            print(E1, E2)
+            magma.eval(f'E1 := EllipticCurve({list(E1.a_invariants())});');
+            magma.eval('a,b := MinimalQuadraticTwist(E1);')
+            coefE1 = ast.literal_eval(magma.eval('print Coefficients(a);'))
+            E1 = EllipticCurve(coefE1)
+            d = int(magma.eval('print b;'))
+
         if d!=1:
             E2 = E2.quadratic_twist(d)
             if verbose:
