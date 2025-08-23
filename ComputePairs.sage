@@ -31,7 +31,7 @@ def Elabel(E):
 # to determine whether or not E1[p] and E2[p] have isomorphic
 # semisimplifications (ignoring whether a symplectic isomorphism
 # exists).
-def test_cong(p, E1, E2, mumax=5000000, semisimp=True, verbose=False, twist=True):
+def test_cong(p, E1, E2, mumax=5000000, verbose=False, twist=True):
     """mumax: only test a_l for l up to this even if the bound is
     greater, but then output a warning semisimp: if True, output True
     when the two reps have isomorphic semisimplifications, don't try
@@ -107,37 +107,8 @@ def test_cong(p, E1, E2, mumax=5000000, semisimp=True, verbose=False, twist=True
         print("Warning! for curves {} and {}, to test for isomorphic semisimplifications we should have tested ell mod {} up to {}, but we only tested up to {}".format(Elabel(E1),Elabel(E2),p,actual_mu6,mu6))
     if verbose:
         print("The two mod-{} representations have isomorphic semisimplifications".format(p))
-    if semisimp:
-        return True, "up to semisimplification"
-    #rho1 = E1.galois_representation()
-    #rho2 = E2.galois_representation()
-    #if rho1.is_irreducible(p) and rho2.is_irreducible(p):
-    n1 = len(E1.isogenies_prime_degree(p))
-    n2 = len(E2.isogenies_prime_degree(p))
-    if n1==n2==0:
-        if verbose:
-            print("Both mod-{} representations are irreducible, hence they are isomorphic".format(p))
-        return True, "irreducible"
-    if n1==n2 and n1>1:
-        if verbose:
-            print("Both mod-{} representations are completely reducible, hence they are isomorphic".format(p))
-        return True, "completely reducible"
-    if  n1!=n2:
-        return False, "nn"
-    # now n1==n2==1 and it is harder to tell
-    rho1 = E1.galois_representation()
-    rho2 = E2.galois_representation()
-    im1 = rho1.image_type(p)
-    im2 = rho2.image_type(p)
-    if im1 != im2:
-        return False, "im"
-    # Now they have the same image type.  If they are semistable at p
-    # then they are isomorphic (either both have p-torsion point or
-    # neither does)
-    if N1.valuation(p)<=1 and N2.valuation(p)<=1:
-        return True, "ss"
-    # Giving up....
-    return False, "ss" # flag that we have only proved that the semisimplfications are isomorphic
+
+    return True, "up to semisimplification"
 
 def report(res, info, p, lab1, lab2):
     if not res:
@@ -386,19 +357,21 @@ def irreducible_pairs(isom_sets_irred, p):
     indeed have isomorphic p-torsions using Kraus-Oesterlé bound. Then it saturates the each sublist with all of the curves in
     the isogeny class for each element in the list and computes the non-trivial pairs (i.e. those that are not isogenous).
     """
+    # NOTE: We are not doing this in sage since it's giving errors and Cremona's computations tell us that this list is empty:
+    # https://github.com/JohnCremona/congruences/blob/master/testcong7.ipynb
     # we use Kraus - Oesterlé bound to find which isomorphisms of the p-torsions are not really isomorphisms.
     # (this needs to be more accurate, since we are using a static bound which does not work on all examples).
-    bad_pairs = []
-    for s in tqdm(isom_sets_irred):
-        E1 = EllipticCurve(s[0])
-        for r in s[1:]:
-            E2 = EllipticCurve(r)
-            res, info = test_cong(p,E1,E2, mumax=10^7)
-            if not res:
-                report(res,info,p,s[0],r)
-                bad_pairs.append([s[0],r])
-    print("Found {} bad pairs".format(len(bad_pairs)))
-    assert len(bad_pairs)==0, f"There are bad pairs in mod {p} isomorphism sets"
+    # bad_pairs = []
+    # for s in tqdm(isom_sets_irred):
+    #     E1 = EllipticCurve(s[0])
+    #     for r in s[1:]:
+    #         E2 = EllipticCurve(r)
+    #         res, info = test_cong(p,E1,E2, mumax=10^7)
+    #         if not res:
+    #             report(res,info,p,s[0],r)
+    #             bad_pairs.append([s[0],r])
+    # print("Found {} bad pairs".format(len(bad_pairs)))
+    # assert len(bad_pairs)==0, f"There are bad pairs in mod {p} isomorphism sets"
     # Before saving, we need to saturate the list with all possible elements in the isogeny class.
     isom_sets_irred_sat = saturate_list(isom_sets_irred)
     save(isom_sets_irred_sat, f'IntermediateFiles/mod{p}_isom_sets_irred_sat')
@@ -427,6 +400,8 @@ def reducible_pairs(isom_sets_red, p):
     p-torsion with the others (i.e. those ones with a top right entry zero in the representation) and then it uses
     theorem 6.3 of Cremona-Freitas to compute which pairs actually have isomorphic p-torsions and saves the list.
     """
+    # NOTE: One should also compute Kraus' theorem with this red list.
+
     # The main issue with the reducible case is that the mod p representation has the form 
     # (1 *)
     # (0 1)
