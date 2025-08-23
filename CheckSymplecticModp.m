@@ -140,7 +140,7 @@ function WriteListOfPairsToFile(list, filename)
 
     str := "[\n";
     for i in [1..#list] do
-        str cat:= Sprintf("[%o, %o]", list[i][1], list[i][2]);
+        str cat:= Sprintf("[\"%o\", \"%o\"]", list[i][1], list[i][2]);
         if i lt #list then
             str cat:= ",";
         end if;
