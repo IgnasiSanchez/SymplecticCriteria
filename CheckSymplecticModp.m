@@ -82,7 +82,7 @@ function test_pairs(pairs, p);
 
     // applies test of good reduction only to those who missed all the tests
 
-    missed2:=[];
+    missed:=[];
     Bound:=1000;
 
     print "After testing ", #pairs, " pairs, ";
@@ -120,7 +120,7 @@ function test_pairs(pairs, p);
             print "+++++++++++++++++++++";
         else
             print i, "no test applied";
-            Append(~missed2,i);
+            Append(~missed,i);
             print "+++++++++++++++++++++";
         end if;
     end for;
@@ -128,10 +128,10 @@ function test_pairs(pairs, p);
     // print "After additional tests of ", #missed, " pairs";
     // print #symplectics, " pairs were proved to be symplectic, ";
     // print #antisymplectics, " pairs were proved to be antisymplectic, and";
-    // print #missed2, " still failed (no test applied)";
+    // print #missed, " still failed (no test applied)";
 
     // return statement to avoid error message, useless otherwise
-    return symplectics, antisymplectics, missed2;
+    return symplectics, antisymplectics, missed;
 
 end function;
 
@@ -163,33 +163,49 @@ if not IsEmpty(pairs[missed]) then
 end if;
 
 load "PairsLists/pairs_mod5_red.m";
-symp, antisymp, missed2 := test_pairs(pairs, 5);
+symp, antisymp, missed := test_pairs(pairs, 5);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod5_red_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod5_red_antisymp.m");
-if not IsEmpty(pairs[missed2]) then
-    WriteListOfPairsToFile(pairs[missed2], "PairsLists/pairs_mod5_red_MISSED.m");
+if not IsEmpty(pairs[missed]) then
+    WriteListOfPairsToFile(pairs[missed], "PairsLists/pairs_mod5_red_MISSED.m");
+end if;
+
+load "PairsLists/pairs_mod7_irred.m";
+symp, antisymp, missed := test_pairs(pairs, 7);
+WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod7_irred_symp.m");
+WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod7_irred_antisymp.m");
+if not IsEmpty(pairs[missed]) then
+    WriteListOfPairsToFile(pairs[missed], "PairsLists/pairs_mod7_irred_MISSED.m");
+end if;
+
+load "PairsLists/pairs_mod7_red.m";
+symp, antisymp, missed := test_pairs(pairs, 7);
+WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod7_red_symp.m");
+WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod7_red_antisymp.m");
+if not IsEmpty(pairs[missed]) then
+    WriteListOfPairsToFile(pairs[missed], "PairsLists/pairs_mod7_red_MISSED.m");
 end if;
 
 load "PairsLists/pairs_mod11_irred.m";
-symp, antisymp, missed3 := test_pairs(pairs, 11);
+symp, antisymp, missed := test_pairs(pairs, 11);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod11_irred_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod11_irred_antisymp.m");
-if not IsEmpty(pairs[missed3]) then
-    WriteListOfPairsToFile(pairs[missed3], "PairsLists/pairs_mod11_irred_MISSED.m");
+if not IsEmpty(pairs[missed]) then
+    WriteListOfPairsToFile(pairs[missed], "PairsLists/pairs_mod11_irred_MISSED.m");
 end if;
 
 load "PairsLists/pairs_mod13_irred.m";
-symp, antisymp, missed4 := test_pairs(pairs, 13);
+symp, antisymp, missed := test_pairs(pairs, 13);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod13_irred_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod13_irred_antisymp.m");
-if not IsEmpty(pairs[missed4]) then
-    WriteListOfPairsToFile(pairs[missed4], "PairsLists/pairs_mod13_irred_MISSED.m");
+if not IsEmpty(pairs[missed]) then
+    WriteListOfPairsToFile(pairs[missed], "PairsLists/pairs_mod13_irred_MISSED.m");
 end if;
 
 load "PairsLists/pairs_mod17_irred.m";
-symp, antisymp, missed5 := test_pairs(pairs, 17);
+symp, antisymp, missed := test_pairs(pairs, 17);
 WriteListOfPairsToFile(pairs[symp], "PairsLists/pairs_mod17_irred_symp.m");
 WriteListOfPairsToFile(pairs[antisymp], "PairsLists/pairs_mod17_irred_antisymp.m");
-if not IsEmpty(pairs[missed5]) then
-    WriteListOfPairsToFile(pairs[missed5], "PairsLists/pairs_mod17_irred_MISSED.m");
+if not IsEmpty(pairs[missed]) then
+    WriteListOfPairsToFile(pairs[missed], "PairsLists/pairs_mod17_irred_MISSED.m");
 end if;
