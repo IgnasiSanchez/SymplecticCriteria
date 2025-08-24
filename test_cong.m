@@ -85,7 +85,7 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
     
     if verbose and mu6 gt mumax then
         printf "Curves %o and %o: testing ell up to %o mod %o\n", 
-               Elabel(E1), Elabel(E2), mu6, p;
+               CremonaReference(E1), CremonaReference(E2), mu6, p;
     end if;
     
     actual_mu6 := mu6;
@@ -95,7 +95,7 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
     
     if verbose then
         printf "Curves %o and %o: testing ell up to %o mod %o\n", 
-               Elabel(E1), Elabel(E2), mu6, p;
+               CremonaReference(E1), CremonaReference(E2), mu6, p;
     end if;
     
     N1N2 := N1 * N2;
@@ -121,8 +121,9 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
     end for;
     
     if mu6 lt actual_mu6 then
-        printf "Warning! for curves %o and %o, to test for isomorphic semisimplifications we should have tested ell mod %o up to %o, but we only tested up to %o\n", 
-               Elabel(E1), Elabel(E2), p, actual_mu6, mu6;
+        printf " ---- WARNING! for curves %o and %o, to test for isomorphic semisimplifications we should have tested ell mod %o up to %o, but we only tested up to %o\n", 
+               CremonaReference(E1), CremonaReference(E2), p, actual_mu6, mu6;
+        return false, "not tested up to required bound";
     end if;
     
     if verbose then
@@ -132,24 +133,19 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
     return true, "up to semisimplification";
 end function;
 
-function report(res, info, p, lab1, lab2)
-    /*
-    Print a report about the congruence test result
-    */
-    if not res then
-        printf "Congruence mod %o fails for %o and %o\n", p, lab1, lab2;
-        if Type(info) eq SeqEnum then
-            printf " (not even isomorphic up to semisimplification: %o)\n", info;
-        elif info eq "ss" then
-            print " (isomorphic up to semisimplication but both are reducible, not totally reducible: failed to prove or disprove!)";
-        elif info eq "nn" then
-            print " (isomorphic up to semisimplication but with different number of stable lines, so not isomorphic)";
-        elif info eq "im" then
-            print " (isomorphic up to semisimplication but with different image types, so not isomorphic)";
+
+p := 13;
+retest := [];
+remove := [];
+for pair in pairs do
+    E1 := EllipticCurve(pair[1]);
+    E2 := EllipticCurve(pair[2]);
+    ans, text := test_cong(p, E1, E2 : mumax := 10^7);
+    if not ans then
+        if Type(text) eq Type("") then
+            Append(~retest, pair);
         else
-            printf " (not even isomorphic up to semisimplification: %o)\n", info;
+            Append(~remove, pair);
         end if;
-    else
-        printf "%o and %o are proved to be congruent mod %o (%o)\n", lab1, lab2, p, info;
     end if;
-end function;
+end for;
