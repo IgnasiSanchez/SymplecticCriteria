@@ -1,4 +1,4 @@
-load "IntFrobFunctions.m"
+load "IntFrobFunctions.m";
 
 function jTildePowModEll(j, p, ell)
     j_tilde := j / ell^Valuation(j, ell);
