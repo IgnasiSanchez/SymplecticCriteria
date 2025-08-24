@@ -105,7 +105,7 @@ function findSuitableEll(E1, E2, p)
 end function;
 
 function WriteListOfPairsToFile(pairs, p, filename)
-    out := "[*\n";
+    out := "pairs := [*\n";
     i := 1;
     for pair in pairs do
         E1 := EllipticCurve(pair[1]);
@@ -122,7 +122,7 @@ function WriteListOfPairsToFile(pairs, p, filename)
         out cat:= "\n";
         i +:= 1;
     end for;
-    out cat:= "*]";
+    out cat:= "*];";
     f := Open(filename, "w");
     Write(f, out);
     return 1;
