@@ -1,5 +1,13 @@
-load "IntFrobFunctions.m";
+load "IntFrobFunctions.m"
 
+function jTildePowModEll(j, p, ell)
+    j_tilde := j / ell^Valuation(j, ell);
+    pow := Integers()!((ell-1)/p);
+    j_tildePower := j_tilde^pow;
+    j_tildePower_d := Integers(ell)!Denominator(j_tildePower);
+    j_tildePower_n := Integers(ell)!Numerator(j_tildePower);
+    return j_tildePower_n/j_tildePower_d;
+end function;
 
 function checkTheorem1Hypothesis(j_1, j_2, p, ell)
 	if Integers(p)!ell ne 1 then
