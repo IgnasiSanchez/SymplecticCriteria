@@ -115,18 +115,20 @@ function WriteListOfPairsToFile(pairs, p, filename)
             for ell in ells do
                 out cat:= Sprintf("[*\"%o\", \"%o\", %o *]", pair[1], pair[2], ell);
             end for;
+            if i lt #pairs then
+                out cat:= ",";
+            end if;
+            out cat:= "\n";
         end if;
-        if i lt #pairs then
-            out cat:= ",";
-        end if;
-        out cat:= "\n";
         i +:= 1;
     end for;
-    out cat:= "*];";
+    out cat:= "*];\n";
     f := Open(filename, "w");
     Write(f, out);
     return 1;
 end function;
+
+t0 := Realtime();
 
 // Mod 5
 load "PairsLists/pairs_mod5_irred_symp.m";
@@ -173,9 +175,7 @@ WriteListOfPairsToFile(pairs, 13, "PairsLists/pairs_mod13_irred_antisymp_withEll
 
 
 // Mod 17
-load "PairsLists/pairs_mod17_irred_symp.m";
-WriteListOfPairsToFile(pairs, 17, "PairsLists/pairs_mod17_irred_symp_withEll.m");
-
 load "PairsLists/pairs_mod17_irred_antisymp.m";
 WriteListOfPairsToFile(pairs, 17, "PairsLists/pairs_mod17_irred_antisymp_withEll.m");
 
+print "Process took:", Realtime(t0), "seconds.";
