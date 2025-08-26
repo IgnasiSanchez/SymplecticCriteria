@@ -7,7 +7,7 @@ function HasSplitMultiplicativeReduction(E,p)
 end function;
 
 function HasNonSplitMultiplicativeReduction(E,p)
-    return ReductionType(E,p) eq "Non-Split Multiplicative";
+    return ReductionType(E,p) eq "Nonsplit Multiplicative";
 end function;
 
 function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true)
