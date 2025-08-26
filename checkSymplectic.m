@@ -90,15 +90,15 @@ function findHGRCase(E, p, ell, zeta)
     error "We didn't find h";
 end function;
 
-load "Output_SplitMultAndGoodRed.out";
-//load "mod5_pairs_with_ell.out";
+load "PairsLists/pairs_mod7_irred_symp_withEll.m";
+
+p := 7;
 isPairsSq := [];
 for pair in pairs do
     print "+++";
-    p := pair[1];
-    E1 := EllipticCurve(pair[2]);
-    E2 := EllipticCurve(pair[3]);
-    ell := pair[4];
+    E1 := EllipticCurve(pair[1]);
+    E2 := EllipticCurve(pair[2]);
+    ell := pair[3];
 
     PolyFF<z> := PolynomialRing(GF(ell));
     zeta:=Roots(z^p - 1)[2,1];
@@ -125,37 +125,8 @@ for pair in pairs do
     print ReductionType(E1,ell), IsSquare(h1);
     print ReductionType(E2,ell), IsSquare(h2);
     isSq := IsSquare(h1/h2);
-    print isSq;
+    print "h/h' is square:", isSq;
     Append(~isPairsSq, isSq);
 
 end for;
 
-for i in [1..#pairs] do
-    if isPairsSq[i] then
-        Append(~pairs[i], "SP");
-    else
-        Append(~pairs[i], "AP");
-    end if;
-end for;
-
-out_symp := "[*\n";
-out_antisymp := "[*\n";
-
-for pair in pairs do
-    if pair[5] eq "SP" then
-        out_symp cat:= Sprintf("   [*%o, \"%o\", \"%o\", %o*],\n", pair[1], pair[2], pair[3], pair[4]);
-    else
-        out_antisymp cat:= Sprintf("   [*%o, \"%o\", \"%o\", %o*],\n", pair[1], pair[2], pair[3], pair[4]);
-    end if;
-end for;
-
-out_symp := out_symp[1..(#out_symp-1)]; // remove last comma
-out_antisymp := out_antisymp[1..(#out_antisymp-1)]; // remove last comma
-
-out_symp cat:= "\n*];";
-out_antisymp cat:= "\n*];";
-
-f := Open("Output_SplitMultAndGoodRed_symp.out", "w");
-Write(f, out_symp);
-f := Open("Output_SplitMultAndGoodRed_antisymp.out", "w");
-Write(f, out_antisymp);

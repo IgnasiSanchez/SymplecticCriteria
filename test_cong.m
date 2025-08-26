@@ -133,8 +133,8 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
     return true, "up to semisimplification";
 end function;
 
-
-p := 13;
+load "PairsLists/pairs_mod7_red.m";
+p := 7;
 retest := [];
 remove := [];
 for pair in pairs do
@@ -149,3 +149,4 @@ for pair in pairs do
         end if;
     end if;
 end for;
+
