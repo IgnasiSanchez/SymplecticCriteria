@@ -6,6 +6,11 @@ function ReduceListUpToQuadraticTwistAndIsogeny(pairs)
         j1 := jInvariant(E1);
         j2 := jInvariant(E2);
 
+        if j1 in [0, 1728] and j2 in [0, 1728] then
+            // We don't handle these cases
+            continue;
+        end if;
+
 
         if [j1,j2] in Keys(AA) then
             Append(~AA[[j1,j2]], pair);
@@ -15,7 +20,11 @@ function ReduceListUpToQuadraticTwistAndIsogeny(pairs)
             Append(~AA[[j2,j1]], [pair[2], pair[1]]);
             continue;
         end if;
-        AA[[j1,j2]] := [pair];
+        if j1 eq 0 or j1 eq 1728 then
+            AA[[j2,j1]] := [[pair[2], pair[1]]];
+        else
+            AA[[j1,j2]] := [pair];
+        end if;
     end for;
 
     AAUpToTwist := AssociativeArray();
@@ -27,10 +36,16 @@ function ReduceListUpToQuadraticTwistAndIsogeny(pairs)
             pair := initial_list[i];
             to_remove := [];
             for j in [(i+1)..#initial_list] do
-                _,d := IsQuadraticTwist(EllipticCurve(pair[1]), EllipticCurve(initial_list[j][1]));
-                if IsIsomorphic(EllipticCurve(pair[2]), QuadraticTwist(EllipticCurve(initial_list[j][2]), d)) then
-                    Append(~to_remove, initial_list[j]);
-                end if;
+                try
+                    _,d := IsQuadraticTwist(EllipticCurve(pair[1]), EllipticCurve(initial_list[j][1]));
+                    if IsIsomorphic(EllipticCurve(pair[2]), QuadraticTwist(EllipticCurve(initial_list[j][2]), d)) then
+                        Append(~to_remove, initial_list[j]);
+                    end if;
+                catch e
+                    print e;
+                    print pair, initial_list[j];
+                    break;
+                end try;
             end for;
             for j in to_remove do
                 Exclude(~initial_list, j);
@@ -38,6 +53,7 @@ function ReduceListUpToQuadraticTwistAndIsogeny(pairs)
             i +:= 1;
             
         until i gt #initial_list;
+        assert not IsEmpty(initial_list);
         AAUpToTwist[k] := initial_list;
     end for;
 
@@ -51,7 +67,15 @@ function ReduceListUpToQuadraticTwistAndIsogeny(pairs)
 
     AAIsog := AssociativeArray();
     pairsIsogenyClasses := {[isogenyLabel(pair[1]), isogenyLabel(pair[2])] : pair in pairsUpToTwist};
-    pairsIsogenyClasses := [[p[1] cat "1", p[2] cat "1"] : p in pairsIsogenyClasses];
+    for pair in pairsIsogenyClasses do
+        AAIsog[pair] := [];
+    end for;
+
+    for pair in pairsUpToTwist do
+        Append(~AAIsog[[isogenyLabel(pair[1]), isogenyLabel(pair[2])]], pair);
+    end for;
+
+    pairsIsogenyClasses := [AAIsog[k][1] : k in Keys(AAIsog)];
 
     return pairsUpToTwist, pairsIsogenyClasses;
 end function;
