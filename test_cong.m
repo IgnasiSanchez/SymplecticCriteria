@@ -10,7 +10,7 @@ function HasNonSplitMultiplicativeReduction(E,p)
     return ReductionType(E,p) eq "Nonsplit Multiplicative";
 end function;
 
-function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true)
+function test_cong(p, E1, E2 : mumax := 5000000, Pr := [], verbose := false, twist := true)
     /*
     Given elliptic curves E1 and E2 and a prime p, use Kraus's Prop. 4
     to determine whether or not E1[p] and E2[p] have isomorphic
@@ -88,9 +88,10 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
                CremonaReference(E1), CremonaReference(E2), mu6, p;
     end if;
     
-    actual_mu6 := mu6;
     if mu6 gt mumax then
-        mu6 := mumax;
+        printf " ---- WARNING! for curves %o and %o, to test for isomorphic semisimplifications we should have tested ell mod %o up to %o. The bound is smaller so we skip this pair.\n", 
+               CremonaReference(E1), CremonaReference(E2), p, mu6;
+        return false, "not tested up to required bound";
     end if;
     
     if verbose then
@@ -99,9 +100,15 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
     end if;
     
     N1N2 := N1 * N2;
+
+    if IsEmpty(Pr) then
+        Pr := PrimesUpTo(mu6);
+    else
+        Pr := [p : p in Pr | p le mu6];
+    end if;
     
     // Test congruence for primes up to the bound
-    for ell in PrimesUpTo(mu6) do
+    for ell in Pr do
         if ell eq p then
             continue;
         end if;
@@ -120,12 +127,6 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
         end if;
     end for;
     
-    if mu6 lt actual_mu6 then
-        printf " ---- WARNING! for curves %o and %o, to test for isomorphic semisimplifications we should have tested ell mod %o up to %o, but we only tested up to %o\n", 
-               CremonaReference(E1), CremonaReference(E2), p, actual_mu6, mu6;
-        return false, "not tested up to required bound";
-    end if;
-    
     if verbose then
         printf "The two mod-%o representations have isomorphic semisimplifications\n", p;
     end if;
@@ -133,14 +134,15 @@ function test_cong(p, E1, E2 : mumax := 5000000, verbose := false, twist := true
     return true, "up to semisimplification";
 end function;
 
-load "PairsLists/pairs_mod7_red.m";
+load "IntermediateFiles/mod7_irred_UpToIsogeny.m";
 p := 7;
 retest := [];
 remove := [];
+Pr := PrimesUpTo(10^7);
 for pair in pairs do
     E1 := EllipticCurve(pair[1]);
     E2 := EllipticCurve(pair[2]);
-    ans, text := test_cong(p, E1, E2 : mumax := 10^7);
+    ans, text := test_cong(p, E1, E2 : mumax := 10^7, Pr := Pr);
     if not ans then
         if Type(text) eq Type("") then
             Append(~retest, pair);
