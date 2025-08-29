@@ -1,5 +1,6 @@
 save_sequential.py
 *.sage.py
+*.wksp
 
 auxfiles/
 auxfiles/*
