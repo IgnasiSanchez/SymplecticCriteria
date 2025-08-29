@@ -1,4 +1,4 @@
-# Symplectic criteria for elliptic curves
+# Symplectic criteria for elliptic curves, revisited
 ## Authors: Freitas, Nuno; Kraus, Alain; Sánchez-Rodríguez, Ignasi.
 
 This Github repository contains the code, intermediate files and final results for the article [Symplectic criteria for elliptic curves, revisited]() (_in Arxiv soon_).
@@ -10,7 +10,7 @@ The files `ComputePairs.sage` and `test_cong.m` are based on John Cremona's [Con
 # How to reproduce the results
 Let us explain in which order to run the files and what each one produces. We warn the user that this process takes a long time and requires a lot of memory to run, so it is adivisible to run in steps or to split the code in different parallel parts. 
 
-1. The first step is to generate all the possible pairs of elliptic curves with an isomorphism of the $p$-torsions, where $p\in\{5,7,11,13,17\}$. This is done by running `ComputePairs.sage`. The code from this file creates the lists `pairs_modp_red.m` and `pairs_modp_irred.m` in the folder `PairsLists` corresponding to all possible pairs $(E_1,E_2)$ with reducible and irreducible (respectively) mod $p$ representations such that $\rho_{E_1,p} \simeq \rho_{E_2,p}$ up to semisimplification. The lists are given as `Magma` lists for convenience.
+1. (Section 7.1) The first step is to generate all pairs of non-isogenous elliptic curves with an isomorphism of the $p$-torsions, where $p\in {5,7,11,13,17}$. This is done by running `ComputePairs.sage`. The code from this file creates the lists `pairs_modp_red.m` and `pairs_modp_irred.m` in the folder `PairsLists` corresponding to all possible pairs $(E_1,E_2)$ with reducible and irreducible (respectively) mod $p$ representations such that $\rho_{E_1,p} \simeq \rho_{E_2,p}$ up to semisimplification. The lists are given as `Magma` lists for convenience.
 To remove this _up to semisimplification_ condition, we do different approaches depending on the reducibility of the mod $p$ representations:
     - When it is irreducible, we run `ListsUpToQuadraticTwist.m`, which returns the lists in `IntermediateFiles` named `modp_irred_UpToTwist.m` (of pairs up to twist) and `modp_irred_UpToIsogeny.m` (of pairs up to twist and isogeny). Then one executes the proposition by Kraus which has been implemented in `test_cong.m`.
     - The reducible case is already handled in `ComputePairs.sage`.
