@@ -138,11 +138,14 @@ load "IntermediateFiles/mod7_irred_UpToIsogeny.m";
 p := 7;
 retest := [];
 remove := [];
-Pr := PrimesUpTo(10^7);
+mumax := 10^7;
+Pr := PrimesUpTo(mumax);
+i := 1;
 for pair in pairs do
+    print i, "/", #pairs;
     E1 := EllipticCurve(pair[1]);
     E2 := EllipticCurve(pair[2]);
-    ans, text := test_cong(p, E1, E2 : mumax := 10^7, Pr := Pr);
+    ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
     if not ans then
         if Type(text) eq Type("") then
             Append(~retest, pair);
@@ -150,5 +153,43 @@ for pair in pairs do
             Append(~remove, pair);
         end if;
     end if;
+    i +:= 1;
 end for;
 
+retest2 := [];
+mumax := 5*10^7;
+Pr := PrimesUpTo(mumax);
+i := 1;
+for pair in retest do
+    print i, "/", #retest;
+    E1 := EllipticCurve(pair[1]);
+    E2 := EllipticCurve(pair[2]);
+    ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
+    if not ans then
+        if Type(text) eq Type("") then
+            Append(~retest2, pair);
+        else
+            Append(~remove, pair);
+        end if;
+    end if;
+    i +:= 1;
+end for;
+
+retest3 := [];
+mumax := 3*10^8;
+Pr := PrimesUpTo(mumax);
+i := 1;
+for pair in retest2 do
+    print i, "/", #retest2;
+    E1 := EllipticCurve(pair[1]);
+    E2 := EllipticCurve(pair[2]);
+    ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
+    if not ans then
+        if Type(text) eq Type("") then
+            Append(~retest3, pair);
+        else
+            Append(~remove, pair);
+        end if;
+    end if;
+    i +:= 1;
+end for;
