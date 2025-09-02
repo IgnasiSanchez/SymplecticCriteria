@@ -11,13 +11,12 @@ function findHSMCase(E, p, ell, zeta)
     j := jInvariant(E);
     j_tilde_pow := GF(ell)!jTildePowModEll(j, p, ell);
 
-    return -Log(zeta, j_tilde_pow);
+    return Log(zeta, j_tilde_pow);
 end function;
 
-function pTorsionBasis(E, p, ell)
-    FF := GF(ell);
+function pTorsionBasis(E, p)
+    FF := BaseRing(E);
     PolyFF<x> := PolynomialRing(FF);
-    E1 := ChangeRing(E, FF);
 
     f := DivisionPolynomial(E, p);
     ff := PolyFF!f;
@@ -25,69 +24,92 @@ function pTorsionBasis(E, p, ell)
 
     smallDegFactors := [ff[1] : ff in F | Degree(ff[1]) eq Degree(F[1][1])];
     bigDegFactors := [ff[1] : ff in F | Degree(ff[1]) gt Degree(F[1][1])];
+    ff_small := &*smallDegFactors;
 
-    FF_small<a> := ext<FF | smallDegFactors[1]>;
-    if Evaluate(ff, a) ne 0 then // this should only happen when the ext has deg 1
-        a := Roots(ff, FF)[1][1];
+    smallDegFactorsInFF := [f[1] : f in Factorization(ff_small)];
+
+    if Degree(smallDegFactorsInFF[1]) eq 1 then
+        FF_small := FF;
+        a := Roots(smallDegFactorsInFF[1], FF)[1][1];
+    else
+        FF_small<a> := ext<FF | smallDegFactorsInFF[1]>;
     end if;
-    PolyFF_small<y> := PolynomialRing(FF_small);
-    E1_small := ChangeRing(E1, FF_small);
-    fESmall := Evaluate(DefiningPolynomial(E1_small), [a, y, 1]);
+
+    PolyFF_small<yy> := PolynomialRing(FF_small);
+    E_small := ChangeRing(E, FF_small);
+    fESmall := Evaluate(DefiningPolynomial(E_small), [a, yy, 1]);
+    quadExtComputed := 0;
     if IsIrreducible(fESmall) then
         FF_small<aY> := ext<FF_small | fESmall>;
+        quadExtComputed := 1;
     else
         aY := Roots(fESmall, FF_small)[1][1];
     end if;
 
-    P1 := ChangeRing(E1_small, FF_small)![a, aY, 1];
+    E_small := ChangeRing(E_small, FF_small);
+    P1 := E_small![a, aY, 1];
 
-    FF_big<b> := ext<FF_small | bigDegFactors[1]>;
+    E2, phi := IsogenyFromKernel(E_small, ff_small);
+    phid := DualIsogeny(phi);
+    K := Kernel(phid);
+    pts := Points(K);
+    P := 1;
+    for pt in pts do
+        if pt eq E2!0 then
+            continue;
+        else
+            P := pt;
+            break;
+        end if;
+    end for;
+    f_x := IsogenyMapPhi(phi);
+    x_coord_num := f_x - P[1]*IsogenyMapPsiSquared(phi);
+
+
+    FF_big<b> := ext<FF_small | x_coord_num>;
     PolyFF_big<z> := PolynomialRing(FF_big);
-    E1_big := ChangeRing(E1, FF_big);
-    fEBig := Evaluate(DefiningPolynomial(E1_big), [b, z, 1]);
-    if IsIrreducible(fEBig) then
+    E_big := ChangeRing(E_small, FF_big);
+    fEBig := Evaluate(DefiningPolynomial(E_big), [b, z, 1]);
+    if quadExtComputed eq 0 and IsIrreducible(fEBig) then
         FF_big<bY> := ext<FF_big | fEBig>;
     else
         bY := Roots(fEBig, FF_big)[1][1];
     end if;
 
-    P2 := ChangeRing(E1_big, FF_big)![b, bY, 1];
+    E_big := ChangeRing(E_big, FF_big);
+    P2 := E_big![b, bY, 1];
 
-    return ChangeRing(E1_big, FF_big)![a, aY, 1], P2, FF_big;
+    return E_big!P1, P2, FF_big;
 end function;
 
 function findHGRCase(E, p, ell, zeta)
-    P1, P2, FF_big := pTorsionBasis(E, p, ell);
+    // FF_z := Parent(zeta);
+    // E_z := ChangeRing(E,FF_z);
+    // not needed, F_z == F_ell
     FF := GF(ell);
-
-    // check if basis is symplectic: 
-    _:=exists(ns){ x : x in [1..p] | not IsSquare(GF(p)!x) };
-    assert LegendreSymbol(ns,p) eq -1;
+    E := ChangeRing(E, FF);
+    P1, P2, FF_big := pTorsionBasis(E, p);
+    
+    if p mod 4 eq 3 then
+        ns := -1;
+    else
+        _:=exists(ns){ x : x in [1..p] | not IsSquare(GF(p)!x) };
+        assert LegendreSymbol(ns,p) eq -1;
+    end if;
 
     pairing := WeilPairing(P1, P2, p);
     k:=Index([zeta^k eq pairing : k in [1..p]], true);
-    if IsSquare(GF(p)!k) then
-        P2:=P2;
-    else
-        P2:=ns*P2;
+
+    if not IsSquare(Zp!k) then
+        P2 := P2 * ns;
     end if;
 
-    // Find Frobenius matrix
-    Gal, _, toAut := AutomorphismGroup(FF_big, FF);
-    Frob_ell := toAut(Gal.1);
-    GP2 := Parent(P1)![Frob_ell(P2[1]), Frob_ell(P2[2]), 1];
 
-    // hp := WeilPairing(P2, GP2, p);
-    // kp:=Index([zeta^k eq hp : k in [1..p]], true);
+    GP2 := Parent(P2)![P2[1]^ell, P2[2]^ell];
+    WPP2FrobP2 := WeilPairing(GP2, P2, p);
+    k2 := Index([zeta^k eq WPP2FrobP2 : k in [1..p]], true);
 
-    for h in [1..p] do 
-        if h*P1 + P2 eq GP2 then
-//            assert IsSquare(GF(p)!(kp*h));
-            return h;
-        end if;
-    end for;
-    
-    error "We didn't find h";
+    return k2;     
 end function;
 
 load "PairsLists/pairs_mod7_irred_symp_withEll.m";
@@ -124,7 +146,7 @@ for pair in pairs do
     h2 := GF(p)!h2;
     print ReductionType(E1,ell), IsSquare(h1);
     print ReductionType(E2,ell), IsSquare(h2);
-    isSq := IsSquare(h1/h2);
+    isSq := IsSquare(-h1/h2);
     print "h/h' is square:", isSq;
     Append(~isPairsSq, isSq);
 
