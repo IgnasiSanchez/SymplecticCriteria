@@ -134,15 +134,107 @@ function test_cong(p, E1, E2 : mumax := 5000000, Pr := [], verbose := false, twi
     return true, "up to semisimplification";
 end function;
 
-load "IntermediateFiles/mod7_irred_UpToIsogeny.m";
-p := 7;
+PolyQ<x> := PolynomialRing(Rationals());
+FFQ<t> := FieldOfFractions(PolyQ);
+
+function test_cong_mod5_symp(E1, E2)
+    jInv1 := jInvariant(E1);
+    jInv2 := jInvariant(E2);
+    E1 := WeierstrassModel(E1);
+    aInv := aInvariants(E1);
+    a := aInv[4];
+    b := aInv[5];
+    alpha,beta := RubinSilverbergPolynomials(5, jInv1/1728);
+    alpha := FFQ!(a*alpha);
+    beta := FFQ!(b*beta);
+    E_t := EllipticCurve([alpha,beta]);
+    jInv_x := jInvariant(E_t);
+    rt := Roots(Numerator(jInv_x - jInv2));
+    if IsEmpty(rt) then
+    // sometimes we have to change the order to compute E_t...
+        return test_cong_mod5_symp(E2,E1);
+    else
+        ref_2 := CremonaReference(E2);
+        for rr in rt do
+            tt := rr[1];
+            alpha_t := Evaluate(alpha, tt);
+            beta_t := Evaluate(beta, tt);
+            E_tt := EllipticCurve([alpha_t, beta_t]);
+            try
+                ref_t := CremonaReference(E_tt);
+                if ref_t eq ref_2 then
+                    return true;
+                end if;
+            catch e
+                continue;
+            end try;
+        end for;
+    end if;
+
+    return false;
+end function;
+
+function test_cong_mod5_antisymp(E1, E2)
+    jInv1 := jInvariant(E1);
+    jInv2 := jInvariant(E2);
+    DD,cc4,cc6 := HessePolynomials(5, 2, cInvariants(E1));
+    cc4_x := FFQ!(-12*Evaluate(cc4,[x,1]));
+    cc6_x := FFQ!(-16*Evaluate(cc6, [x,1]));
+    cc4_y := FFQ!(-12*Evaluate(cc4,[1,x]));
+    cc6_y := FFQ!(-16*Evaluate(cc6, [1,x]));
+    E_x := EllipticCurve([cc4_x, cc6_x]);
+    E_y := EllipticCurve([cc4_y, cc6_y]);
+    jInv_x := jInvariant(E_x);
+    jInv_y := jInvariant(E_y);
+    rt_x := Roots(Numerator(jInv_x - jInv2));
+    rt_y := Roots(Numerator(jInv_y - jInv2));
+    if IsEmpty(rt_x) and IsEmpty(rt_y) then
+        return false; 
+    else
+        ref_2 := CremonaReference(E2);
+        for rr in rt_x do
+            tt := rr[1];
+            cc4_tt := Evaluate(cc4_x, tt);
+            cc6_tt := Evaluate(cc6_x, tt);
+            E_tt := EllipticCurve([cc4_tt, cc6_tt]);
+            try
+                ref_t := CremonaReference(E_tt);
+                if ref_t eq ref_2 then
+                    return true;
+                end if;
+            catch e
+                continue;
+            end try;
+        end for;
+        for rr in rt_y do
+            tt := rr[1];
+            cc4_tt := Evaluate(cc4_y, tt);
+            cc6_tt := Evaluate(cc6_y, tt);
+            E_tt := EllipticCurve([cc4_tt, cc6_tt]);
+            try
+                ref_t := CremonaReference(E_tt);
+                if ref_t eq ref_2 then
+                    return true;
+                end if;
+            catch e
+                continue;
+            end try;
+        end for;
+    end if;
+
+    return false;
+end function;
+
+load "IntermediateFiles/mod5_irred_UpToIsogeny.m";
+p := 5;
 retest := [];
 remove := [];
 mumax := 10^7;
 Pr := PrimesUpTo(mumax);
+t00 := Realtime();
 i := 1;
-for pair in pairs do
-    print i, "/", #pairs;
+for pair in pairsIsogenyClass do
+    print i, "/", #pairsIsogenyClass;
     E1 := EllipticCurve(pair[1]);
     E2 := EllipticCurve(pair[2]);
     ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
@@ -155,41 +247,60 @@ for pair in pairs do
     end if;
     i +:= 1;
 end for;
+print "Took", Realtime(t00), "seconds";
 
-retest2 := [];
-mumax := 5*10^7;
-Pr := PrimesUpTo(mumax);
+t00 := Realtime();
 i := 1;
-for pair in retest do
-    print i, "/", #retest;
+for pair in pairs do
+    print i, "/", #pairs;
     E1 := EllipticCurve(pair[1]);
     E2 := EllipticCurve(pair[2]);
-    ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
-    if not ans then
-        if Type(text) eq Type("") then
-            Append(~retest2, pair);
-        else
+    symp := test_cong_mod5_symp(E1, E2);
+    if not symp then
+        antisymp := test_cong_mod5_antisymp(E1, E2);
+        if not antisymp then
+            print "--- deleting pair", pair;
             Append(~remove, pair);
         end if;
     end if;
     i +:= 1;
 end for;
+print "Took", Realtime(t00), "seconds";
 
-retest3 := [];
-mumax := 3*10^8;
-Pr := PrimesUpTo(mumax);
-i := 1;
-for pair in retest2 do
-    print i, "/", #retest2;
-    E1 := EllipticCurve(pair[1]);
-    E2 := EllipticCurve(pair[2]);
-    ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
-    if not ans then
-        if Type(text) eq Type("") then
-            Append(~retest3, pair);
-        else
-            Append(~remove, pair);
-        end if;
-    end if;
-    i +:= 1;
-end for;
+// retest2 := [];
+// mumax := 5*10^7;
+// Pr := PrimesUpTo(mumax);
+// i := 1;
+// for pair in retest do
+//     print i, "/", #retest;
+//     E1 := EllipticCurve(pair[1]);
+//     E2 := EllipticCurve(pair[2]);
+//     ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
+//     if not ans then
+//         if Type(text) eq Type("") then
+//             Append(~retest2, pair);
+//         else
+//             Append(~remove, pair);
+//         end if;
+//     end if;
+//     i +:= 1;
+// end for;
+
+// retest3 := [];
+// mumax := 3*10^8;
+// Pr := PrimesUpTo(mumax);
+// i := 1;
+// for pair in retest2 do
+//     print i, "/", #retest2;
+//     E1 := EllipticCurve(pair[1]);
+//     E2 := EllipticCurve(pair[2]);
+//     ans, text := test_cong(p, E1, E2 : mumax := mumax, Pr := Pr);
+//     if not ans then
+//         if Type(text) eq Type("") then
+//             Append(~retest3, pair);
+//         else
+//             Append(~remove, pair);
+//         end if;
+//     end if;
+//     i +:= 1;
+// end for;
