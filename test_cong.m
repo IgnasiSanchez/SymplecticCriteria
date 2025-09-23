@@ -137,6 +137,13 @@ end function;
 PolyQ<x> := PolynomialRing(Rationals());
 FFQ<t> := FieldOfFractions(PolyQ);
 
+function Homogenize(P)
+    PolyQ2<x,y> := PolynomialRing(Rationals(), 2);
+    coeffs := Coefficients(P);
+    deg := Degree(P);
+    return &+[coeffs[i+1]*y^(deg-i)*x^i : i in [0..deg]];
+end function;
+
 function test_cong_mod5_symp(E1, E2)
     jInv1 := jInvariant(E1);
     jInv2 := jInvariant(E2);
@@ -145,20 +152,45 @@ function test_cong_mod5_symp(E1, E2)
     a := aInv[4];
     b := aInv[5];
     alpha,beta := RubinSilverbergPolynomials(5, jInv1/1728);
-    alpha := FFQ!(a*alpha);
-    beta := FFQ!(b*beta);
-    E_t := EllipticCurve([alpha,beta]);
-    jInv_x := jInvariant(E_t);
-    rt := Roots(Numerator(jInv_x - jInv2));
-    if IsEmpty(rt) then
-    // sometimes we have to change the order to compute E_t...
-        return test_cong_mod5_symp(E2,E1);
+
+    // We found some examples where the only root of j(t)-j2 is at infinity
+    // so we need to homogenize to find this root.
+    alpha := a*Homogenize(alpha);
+    beta := b*Homogenize(beta);
+    alpha_x := FFQ!Evaluate(alpha, [x,1]);
+    beta_x := FFQ!Evaluate(beta, [x,1]);
+    alpha_y := FFQ!Evaluate(alpha, [1,x]);
+    beta_y := FFQ!Evaluate(beta, [1,x]);
+    E_x := EllipticCurve([alpha_x, beta_x]);
+    E_y := EllipticCurve([alpha_y, beta_y]);
+    jInv_x := jInvariant(E_x);
+    jInv_y := jInvariant(E_y);
+
+    rt_x := Roots(Numerator(jInv_x - jInv2));
+    rt_y := Roots(Numerator(jInv_y - jInv2));
+
+    if IsEmpty(rt_x) and IsEmpty(rt_y) then
+        return false; 
     else
         ref_2 := CremonaReference(E2);
-        for rr in rt do
+        for rr in rt_x do
             tt := rr[1];
-            alpha_t := Evaluate(alpha, tt);
-            beta_t := Evaluate(beta, tt);
+            alpha_t := Evaluate(alpha, [tt,1]);
+            beta_t := Evaluate(beta, [tt,1]);
+            E_tt := EllipticCurve([alpha_t, beta_t]);
+            try
+                ref_t := CremonaReference(E_tt);
+                if ref_t eq ref_2 then
+                    return true;
+                end if;
+            catch e
+                continue;
+            end try;
+        end for;
+        for rr in rt_y do
+            tt := rr[1];
+            alpha_t := Evaluate(alpha, [1,tt]);
+            beta_t := Evaluate(beta, [1,tt]);
             E_tt := EllipticCurve([alpha_t, beta_t]);
             try
                 ref_t := CremonaReference(E_tt);
