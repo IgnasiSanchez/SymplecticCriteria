@@ -1,5 +1,7 @@
 # Symplectic criteria for elliptic curves, revisited
 ## Authors: Freitas, Nuno; Kraus, Alain; Sánchez-Rodríguez, Ignasi.
+[![DOI](https://zenodo.org/badge/1039052536.svg)](https://doi.org/10.5281/zenodo.20394030)
+
 
 This Github repository contains the code, intermediate files and final results for the article [Symplectic criteria for elliptic curves, revisited]() (_in Arxiv soon_).
 
